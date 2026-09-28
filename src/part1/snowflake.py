@@ -17,15 +17,12 @@ import time
 
 from .constants import (
     EPOCH_MS_DEFAULT,
-    NODE_ID_BITS,
     NODE_ID_DEFAULT,
-    NODE_ID_MASK,
     NODE_ID_MAX,
-    SEQUENCE_ID_BITS,
-    SEQUENCE_ID_MASK,
+    NODE_ID_SHIFT,
     SEQUENCE_ID_MAX,
-    TIMESTAMP_MASK,
     TIMESTAMP_MS_MAX,
+    TIMESTAMP_SHIFT
 )
 
 
@@ -40,7 +37,6 @@ def read_current_millis(epoch_ms: int) -> int:
         negative if ``epoch_ms`` lies in the future.
     """
     return int(time.time() * 1000) - epoch_ms
-    return 0
 
 
 def decode_timestamp_ms(snowflake_id: int, epoch_ms: int = EPOCH_MS_DEFAULT) -> int:
@@ -55,8 +51,7 @@ def decode_timestamp_ms(snowflake_id: int, epoch_ms: int = EPOCH_MS_DEFAULT) -> 
         The absolute Unix time in milliseconds at which the identifier was
         generated.
     """
-    return (snowflake_id & TIMESTAMP_MASK) + epoch_ms
-    return 0
+    return ((snowflake_id >> TIMESTAMP_SHIFT) & TIMESTAMP_MS_MAX) + epoch_ms
 
 
 def decode_node_id(snowflake_id: int) -> int:
@@ -69,8 +64,7 @@ def decode_node_id(snowflake_id: int) -> int:
         The node identifier packed into ``snowflake_id``, in the range
         ``[0, NODE_ID_MAX]``.
     """
-    return snowflake_id & NODE_ID_MASK
-    return 0
+    return (snowflake_id >> NODE_ID_SHIFT) & NODE_ID_MAX
 
 
 def decode_sequence_id(snowflake_id: int) -> int:
@@ -83,8 +77,7 @@ def decode_sequence_id(snowflake_id: int) -> int:
         The per-millisecond sequence counter packed into ``snowflake_id``, in
         the range ``[0, SEQUENCE_ID_MAX]``.
     """
-    return snowflake_id & SEQUENCE_ID_MASK
-    return 0
+    return snowflake_id & SEQUENCE_ID_MAX
 
 
 def generate_snowflake_id(
@@ -115,24 +108,22 @@ def generate_snowflake_id(
         timestamp field (roughly 69 years after ``epoch_ms``). In each of those
         cases an explanatory message is printed to stdout first.
     """
-    if node_id < 0 or node_id > NODE_ID_MAX:
+    if not 0 <= node_id <= NODE_ID_MAX:
         print(f"node_id must be in [0, {NODE_ID_MAX}], given value: {node_id}")
         return None
 
-    elif sequence_id < 0 or sequence_id > SEQUENCE_ID_MAX:
+    elif not 0 <= sequence_id <= SEQUENCE_ID_MAX:
         print(
             f"sequence_id must be in [0, {SEQUENCE_ID_MAX}], given value: {sequence_id}"
         )
         return None
-
-    if read_current_millis(epoch_ms) > TIMESTAMP_MS_MAX:
+    elapsed_ms = read_current_millis(epoch_ms)
+    if elapsed_ms > TIMESTAMP_MS_MAX:
         print("overflows")
         return None
 
-    generated_id = (
-        (read_current_millis(epoch_ms) << (SEQUENCE_ID_BITS + NODE_ID_BITS))
-        | (node_id << (SEQUENCE_ID_BITS))
+    return (
+        (elapsed_ms << TIMESTAMP_SHIFT)
+        | (node_id << NODE_ID_SHIFT)
         | sequence_id
     )
-
-    return generated_id

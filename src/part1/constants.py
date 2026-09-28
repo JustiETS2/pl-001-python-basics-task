@@ -36,13 +36,5 @@ SEQUENCE_ID_MAX: Final[int] = 2**SEQUENCE_ID_BITS - 1
 
 # Здесь можно добавить собственные вспомогательные константы
 # (например, сдвиги полей при сборке идентификатора).
-TIMESTAMP_MASK: Final[int] = int(
-    ("0" + "1" * TIMESTAMP_BITS + "0" * NODE_ID_BITS + "0" * SEQUENCE_ID_BITS), 2
-)
-
-NODE_ID_MASK: Final[int] = int(
-    ("0" + "0" * TIMESTAMP_BITS + "1" * NODE_ID_BITS + "0" * SEQUENCE_ID_BITS), 2
-)
-SEQUENCE_ID_MASK: Final[int] = int(
-    ("0" + "0" * TIMESTAMP_BITS + "0" * NODE_ID_BITS + "1" * SEQUENCE_ID_BITS), 2
-)
+NODE_ID_SHIFT: Final[int] = SEQUENCE_ID_BITS
+TIMESTAMP_SHIFT: Final[int] = SEQUENCE_ID_BITS + NODE_ID_BITS
