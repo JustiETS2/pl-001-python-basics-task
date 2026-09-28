@@ -15,9 +15,6 @@ changing a width keeps everything else consistent.
 from typing import Final
 
 
-# TODO: замените заглушки (0) на корректные значения, см. TASK.md.
-# Все константы, зависящие от ёмкостей *_BITS, должны вычисляться из них.
-
 # Twitter's original Snowflake epoch: 2010-11-04 01:42:54.657 UTC.
 EPOCH_MS_DEFAULT: Final[int] = 1288834974657
 

@@ -22,7 +22,7 @@ from .constants import (
     NODE_ID_SHIFT,
     SEQUENCE_ID_MAX,
     TIMESTAMP_MS_MAX,
-    TIMESTAMP_SHIFT
+    TIMESTAMP_SHIFT,
 )
 
 
@@ -112,18 +112,16 @@ def generate_snowflake_id(
         print(f"node_id must be in [0, {NODE_ID_MAX}], given value: {node_id}")
         return None
 
-    elif not 0 <= sequence_id <= SEQUENCE_ID_MAX:
+    if not 0 <= sequence_id <= SEQUENCE_ID_MAX:
         print(
             f"sequence_id must be in [0, {SEQUENCE_ID_MAX}], given value: {sequence_id}"
         )
         return None
+
     elapsed_ms = read_current_millis(epoch_ms)
+
     if elapsed_ms > TIMESTAMP_MS_MAX:
         print("overflows")
         return None
 
-    return (
-        (elapsed_ms << TIMESTAMP_SHIFT)
-        | (node_id << NODE_ID_SHIFT)
-        | sequence_id
-    )
+    return (elapsed_ms << TIMESTAMP_SHIFT) | (node_id << NODE_ID_SHIFT) | sequence_id
